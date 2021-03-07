@@ -1,6 +1,6 @@
 const fs = require('fs');
-const { Spectral, isOpenApiv2 } = require('@stoplight/spectral');
-const { join } = require('path');
+const {Spectral, isOpenApiv2} = require('@stoplight/spectral');
+const {join} = require('path');
 const diff = require('variable-diff');
 
 // compare results to filename.result
@@ -32,8 +32,45 @@ function processExamples(err, files) {
   files.filter(isInterestingFile).forEach(processExample.bind(this));
 }
 
-function ensureExpected(expectedJsonFile) {
+function processResult(expected, result, exampleJsonFile) {
+  const diffResult = diff(expected, result);
+  if (diffResult.changed) {
+    console.log(`not ok - ${exampleJsonFile}`);
+    console.log('# ' + diffResult.text.split('\n').join('\n# '));
+  } else {
+    console.log(`ok - ${exampleJsonFile}`);
+  }
+}
+
+function processExample(exampleName) {
+  const {exampleJsonFile, example} = loadExample(this.rulesetName, exampleName);
+  const expected = loadExpectedResult(this.rulesetName, exampleName);
+
+  const done = result => {
+    writeActualResult(this.rulesetName, exampleName, result);
+    processResult(expected, result, exampleJsonFile);
+  };
+  runExample.call(this, example, done);
+}
+
+function runExample(example, done) {
+  const spectral = new Spectral();
+  spectral.registerFormat('oas2', isOpenApiv2);
+  spectral.loadRuleset(join(__dirname, 'rules', this.rulesetFile))
+    .then(() => spectral.run(example))
+    .then(done)
+    .catch(error => console.log('error: ', error));
+}
+
+function loadExample(rulesetName, exampleName) {
+  const exampleJsonFile = `rules/examples/${rulesetName}/${splitFileName(exampleName)[0]}.json`;
+  const example = fs.readFileSync(exampleJsonFile).toString();
+  return {exampleJsonFile, example};
+}
+
+function loadExpectedResult(rulesetName, exampleName) {
   // load the expected file, return empty placeholder if not existing
+  const expectedJsonFile = makeResultFilename(rulesetName, exampleName, 'expected');
   try {
     return JSON.parse(fs.readFileSync(expectedJsonFile).toString());
   } catch (e) {
@@ -44,30 +81,13 @@ function ensureExpected(expectedJsonFile) {
   }
 }
 
-function processExample(exampleName) {
-  const exampleJsonFile = `rules/examples/${this.rulesetName}/${splitFileName(exampleName)[0]}.json`;
+function makeResultFilename(rulesetName, exampleName, type) {
+  const actualJsonFile = `rules/examples/${rulesetName}/results/${splitFileName(exampleName)[0]}.${type}.json`;
+  return actualJsonFile;
+}
 
-  const expectedJsonFile = `rules/examples/${this.rulesetName}/results/${splitFileName(exampleName)[0]}.expected.json`;
-  const actualJsonFile = `rules/examples/${this.rulesetName}/results/${splitFileName(exampleName)[0]}.actual.json`;
-
-  const expected = ensureExpected(expectedJsonFile);
-  const example = fs.readFileSync(exampleJsonFile).toString();
-
-  const spectral = new Spectral();
-  spectral.registerFormat('oas2', isOpenApiv2);
-  spectral.loadRuleset(join(__dirname, 'rules', this.rulesetFile))
-    .then(() => spectral.run(example))
-    .then(result => {
-      const actualJson = JSON.stringify(result, null, 2);
-      fs.writeFileSync(actualJsonFile, actualJson);
-
-      const diffResult = diff(expected, result);
-      if (diffResult.changed) {
-        console.log(`not ok - ${exampleJsonFile}`);
-        console.log('# ' + diffResult.text.split('\n').join('\n# '));
-      } else {
-        console.log(`ok - ${exampleJsonFile}`);
-      }
-    })
-    .catch(error => console.log('error', error));
+function writeActualResult(rulesetName, exampleName, result) {
+  const actualJson = JSON.stringify(result, null, 2);
+  const actualJsonFile = makeResultFilename(rulesetName, exampleName, 'actual');
+  fs.writeFileSync(actualJsonFile, actualJson);
 }
