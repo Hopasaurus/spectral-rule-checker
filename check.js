@@ -32,12 +32,25 @@ function processExamples(err, files) {
   files.filter(isInterestingFile).forEach(processExample.bind(this));
 }
 
+function ensureExpected(expectedJsonFile) {
+  // load the expected file, return empty placeholder if not existing
+  try {
+    return JSON.parse(fs.readFileSync(expectedJsonFile).toString());
+  } catch (e) {
+    if (e.code === "ENOENT") {
+      return [];
+    }
+    throw e;
+  }
+}
+
 function processExample(exampleName) {
   const exampleJsonFile = `rules/examples/${this.rulesetName}/${splitFileName(exampleName)[0]}.json`;
-  const expectedJsonFile = `rules/examples/${this.rulesetName}/${splitFileName(exampleName)[0]}.expected`;
-  const actualJsonFile = `rules/examples/${this.rulesetName}/${splitFileName(exampleName)[0]}.actual`;
 
-  const expected = JSON.parse(fs.readFileSync(expectedJsonFile).toString());
+  const expectedJsonFile = `rules/examples/${this.rulesetName}/results/${splitFileName(exampleName)[0]}.expected.json`;
+  const actualJsonFile = `rules/examples/${this.rulesetName}/results/${splitFileName(exampleName)[0]}.actual.json`;
+
+  const expected = ensureExpected(expectedJsonFile);
   const example = fs.readFileSync(exampleJsonFile).toString();
 
   const spectral = new Spectral();

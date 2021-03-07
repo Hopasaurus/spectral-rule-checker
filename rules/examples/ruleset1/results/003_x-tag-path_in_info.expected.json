@@ -1,0 +1,21 @@
+[
+  {
+    "code": "no-x-tag-path-in-info",
+    "message": "x.y.z - x-tag-info must NOT be in $.info",
+    "path": [
+      "info",
+      "x-tag-path"
+    ],
+    "severity": 0,
+    "range": {
+      "start": {
+        "line": 8,
+        "character": 18
+      },
+      "end": {
+        "line": 8,
+        "character": 46
+      }
+    }
+  }
+]
