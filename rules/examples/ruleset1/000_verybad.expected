@@ -1,0 +1,18 @@
+[
+  {
+    "range": {
+      "start": {
+        "line": 0,
+        "character": 0
+      },
+      "end": {
+        "line": 1,
+        "character": 0
+      }
+    },
+    "message": "The provided document does not match any of the registered formats [oas2]",
+    "code": "unrecognized-format",
+    "severity": 1,
+    "path": []
+  }
+]

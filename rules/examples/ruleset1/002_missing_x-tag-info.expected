@@ -1,0 +1,20 @@
+[
+  {
+    "code": "x-tag-info-must-be-in-info",
+    "message": "x.y.z - x-tag-info must be in $.info",
+    "path": [
+      "info"
+    ],
+    "severity": 0,
+    "range": {
+      "start": {
+        "line": 2,
+        "character": 9
+      },
+      "end": {
+        "line": 6,
+        "character": 45
+      }
+    }
+  }
+]
