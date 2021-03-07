@@ -1,7 +1,7 @@
 
 # Spectral Rule Checker
 
-a quick POC for a tool to help create rules for @stoplight/spectral
+a quick POC for a tool to help create rules for [@stoplight/spectral](https://github.com/stoplightio/spectral)
 
 
 Sample run happy path:

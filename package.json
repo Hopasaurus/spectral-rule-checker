@@ -7,7 +7,6 @@
     "variable-diff": "^2.0.2"
   },
   "scripts": {
-    "startold": "spectral --version",
     "start": "node check.js"
   },
   "eslintConfig": {
